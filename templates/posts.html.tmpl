@@ -1,0 +1,15 @@
+<html>
+    <head>
+        <title>Blog - All Posts</title>
+    </head>
+
+    <body>
+        <h1>All Blog Posts</h1>
+
+        <ul>
+        {{range $i, $p := .Posts}}
+            <li><a href="{{ $p.Route }}">{{ $p.Title }}</a></li>
+        {{end}}
+        </ul>
+    </body>
+</html>
