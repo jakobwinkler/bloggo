@@ -14,19 +14,19 @@ func index(w http.ResponseWriter, r *http.Request) {
 		util.LogRequest(r)
 		http.NotFound(w, r)
 	} else {
-		static(w, r, "static/index.md", "templates/index.tmpl.html")
+		page(w, r, "pages/index.md", "templates/index.tmpl.html")
 	}
 }
 
 func legal(w http.ResponseWriter, r *http.Request) {
-	static(w, r, "static/legal.md", "templates/static.tmpl.html")
+	page(w, r, "pages/legal.md", "templates/page.tmpl.html")
 }
 
 func posts(w http.ResponseWriter, r *http.Request) {
-	static(w, r, "static/posts.md", "templates/posts.tmpl.html")
+	page(w, r, "pages/posts.md", "templates/posts.tmpl.html")
 }
 
-func static(w http.ResponseWriter, r *http.Request, filePath string, templatePath string) {
+func page(w http.ResponseWriter, r *http.Request, filePath string, templatePath string) {
 	util.LogRequest(r)
 
 	err := util.RefuseUnsupportedMethods(w, r)

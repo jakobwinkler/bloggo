@@ -1,2 +1,8 @@
 # the binary
 bloggo
+
+# default data dirs
+posts
+pages
+templates
+static

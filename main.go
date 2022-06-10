@@ -43,6 +43,10 @@ func main() {
 	routes.CreateStaticRoutes(mux, flags.templateRoot)
 	routes.CreateDynamicRoutes(mux, flags.templateRoot, flags.blogRoot)
 
+	// Allow hosting static files
+	fileServer := http.FileServer(http.Dir("./static/"))
+	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
+
 	// OK GO
 	log.Printf("Serving blog from %s and %s on :%d", flags.blogRoot, flags.templateRoot, flags.port)
 	err := http.ListenAndServe(fmt.Sprintf(":%d", flags.port), mux)
