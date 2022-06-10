@@ -18,17 +18,18 @@ func post(w http.ResponseWriter, r *http.Request, path string) {
 
 	err := util.RefuseUnsupportedMethods(w, r)
 	if err == nil {
-		err, output := util.RenderMarkdown(path)
+		err, output, matter := util.RenderMarkdown(path)
 
 		// Data required for template execution
 		pageData := util.PageData{
 			Posts:   AllPosts,
 			Version: util.Version,
-			Title:   path,
+			Title:   matter.Title,
+			Date:    matter.Date,
 			Body:    template.HTML(output),
 		}
 
-		err = util.ProcessTemplate(w, postTemplate, pageData)
+		err = util.ProcessHTMLTemplate(w, postTemplate, pageData)
 		if err != nil {
 			log.Printf("Error rendering template: %s", err)
 			http.Error(w, "Error rendering template", http.StatusInternalServerError)
@@ -52,9 +53,14 @@ func CreateDynamicRoutes(mux *http.ServeMux, templateRoot string, blogRoot strin
 		route := BaseRoute + strings.TrimSuffix(basename, filepath.Ext(basename))
 		log.Printf("Routing %s via %s", m, route)
 
+		err, matter := util.ParseFrontmatter(m)
+		if err != nil {
+			log.Fatalf("Error parsing frontmatter of %s: %s", m, err)
+		}
+
 		data := util.PostRoute{
-			Title: "<TODO: parse front matter>",
-			Route: route,
+			Route:  route,
+			Matter: *matter,
 		}
 		AllPosts = append(AllPosts, data)
 		mux.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {

@@ -1,3 +1,7 @@
-# Blog Index
+---
+title: "blog.jwinkler.me"
+---
 
-[All posts →](/posts)
+- Info:
+  - My blog
+  - Don't expect regular updates

@@ -3,34 +3,62 @@ package util
 import (
 	"bytes"
 	"errors"
-	"html/template"
+	htemplate "html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
+	ttemplate "text/template"
 
+	"github.com/adrg/frontmatter"
 	"github.com/gomarkdown/markdown"
 )
 
 type PostRoute struct {
-	Title string
-	Route string
+	Route  string
+	Matter FrontMatter
 }
 
 type PageData struct {
 	Posts   []PostRoute
 	Version string
 	Title   string
-	Body    template.HTML
+	Date    string
+	Body    htemplate.HTML
+}
+
+type FrontMatter struct {
+	Title string `yaml:"title"`
+	Date  string `yaml:"date"`
 }
 
 func LogRequest(r *http.Request) {
 	log.Printf("Got request: %s %s", r.Method, r.URL.String())
 }
 
-func ProcessTemplate(w http.ResponseWriter, templatePath string, data interface{}) error {
-	const masterTemplate = "./templates/master.tmpl.html"
+func ProcessTextTemplate(w http.ResponseWriter, templatePath string, data interface{}) error {
 	// Parse template
-	temp, err := template.ParseFiles(masterTemplate, templatePath)
+	temp, err := ttemplate.ParseFiles(templatePath)
+	if err != nil {
+		return err
+	}
+
+	// Render template to temporary buffer so we can handle errors gracefully
+	var buf bytes.Buffer
+	err = temp.Execute(&buf, data)
+	if err != nil {
+		return err
+	}
+
+	// Finally, write the rendered template to the response
+	buf.WriteTo(w)
+	return nil
+}
+
+func ProcessHTMLTemplate(w http.ResponseWriter, templatePath string, data interface{}) error {
+	const masterTemplate = "./templates/master.tmpl.html"
+
+	// Parse template
+	temp, err := htemplate.ParseFiles(masterTemplate, templatePath)
 	if err != nil {
 		return err
 	}
@@ -56,14 +84,39 @@ func RefuseUnsupportedMethods(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func RenderMarkdown(path string) (error, []byte) {
+func RenderMarkdown(path string) (error, []byte, *FrontMatter) {
 	// Read post contents
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		log.Printf("Error reading post content: %s", err)
-		return err, nil
+		log.Printf("Error reading post file: %s", err)
+		return err, nil, nil
+	}
+
+	matter := FrontMatter{}
+	rest, err := frontmatter.Parse(bytes.NewReader(content), &matter)
+	if err != nil {
+		log.Printf("Error reading front matter: %s", err)
+		return err, nil, nil
 	}
 
 	// Render HTML
-	return nil, markdown.ToHTML(content, nil, nil)
+	return nil, markdown.ToHTML(rest, nil, nil), &matter
+}
+
+func ParseFrontmatter(path string) (error, *FrontMatter) {
+	// Read post contents
+	content, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Printf("Error reading post file: %s", err)
+		return err, nil
+	}
+
+	matter := FrontMatter{}
+	_, err = frontmatter.Parse(bytes.NewReader(content), &matter)
+	if err != nil {
+		log.Printf("Error reading front matter: %s", err)
+		return err, nil
+	}
+
+	return nil, &matter
 }

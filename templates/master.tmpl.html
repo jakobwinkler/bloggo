@@ -4,6 +4,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml" />
+
     <title>{{ template "title" . }}</title>
     <style type="text/css">
         body {
@@ -14,6 +16,10 @@
             color: #444;
             background: #eee;
             padding: 0 10px
+        }
+
+        .meta {
+            text-align: right;
         }
 
         hr {
@@ -45,6 +51,9 @@
 
     <div>
         Made with ❤️ using <a href="https://github.com/jakobwinkler/bloggo">bloggo</a> {{ .Version }}
+    </div>
+    <div>
+        {{ template "footer" . }}
     </div>
 </body>
 
