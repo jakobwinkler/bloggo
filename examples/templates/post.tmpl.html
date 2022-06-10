@@ -1,0 +1,11 @@
+{{ define "title" }}{{ .Title }}{{ end }}
+
+{{ define "content" }}
+<a href="/">../</a>
+<h1>{{ .Title }}</h1>
+<div class="meta">{{ .Date }}</div>
+<div>{{ .Body }}</div>
+{{ end }}
+
+{{ define "footer" }}
+{{ end }}
