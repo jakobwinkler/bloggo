@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ template "title" . }}</title>
+    <style type="text/css">
+        body {
+            margin: 40px auto;
+            max-width: 650px;
+            line-height: 1.6;
+            font-size: 18px;
+            color: #444;
+            background: #eee;
+            padding: 0 10px
+        }
+
+        hr {
+            text-align: center;
+            border: 0;
+        }
+
+        hr:before {
+            content: '/////';
+        }
+
+        hr:after {
+            content: attr(data-content) "/////";
+        }
+
+
+        h1,
+        h2,
+        h3 {
+            line-height: 1.2
+        }
+    </style>
+</head>
+
+<body>
+    {{ template "content" . }}
+
+    <hr />
+
+    <div>
+        Made with ❤️ using <a href="https://github.com/jakobwinkler/bloggo">bloggo</a> {{ .Version }}
+    </div>
+</body>
+
+</html>

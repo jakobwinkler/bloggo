@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"io/ioutil"
+	"html/template"
 	"log"
 	"net/http"
 	"path/filepath"
@@ -10,40 +10,25 @@ import (
 	"github.com/jakobwinkler/bloggo/util"
 )
 
-type postRoute struct {
-	Title string
-	Route string
-}
-
-var allPosts []postRoute
+var AllPosts []util.PostRoute
 
 func post(w http.ResponseWriter, r *http.Request, path string) {
-	const postTemplate = "./templates/post.html.tmpl"
+	const postTemplate = "./templates/post.tmpl.html"
 	util.LogRequest(r)
 
 	err := util.RefuseUnsupportedMethods(w, r)
 	if err == nil {
-		// Read post contents
-		content, err := ioutil.ReadFile(path)
-		if err != nil {
-			log.Printf("Error reading post content: %s", err)
-			http.Error(w, "Error reading post", http.StatusInternalServerError)
-			return
-		}
+		err, output := util.RenderMarkdown(path)
 
 		// Data required for template execution
-		type postData struct {
-			Title string
-			Body  string
-			Route string
+		pageData := util.PageData{
+			Posts:   AllPosts,
+			Version: util.Version,
+			Title:   path,
+			Body:    template.HTML(output),
 		}
 
-		data := postData{
-			Title: path,
-			Body:  string(content),
-		}
-
-		err = util.ProcessTemplate(w, postTemplate, data)
+		err = util.ProcessTemplate(w, postTemplate, pageData)
 		if err != nil {
 			log.Printf("Error rendering template: %s", err)
 			http.Error(w, "Error rendering template", http.StatusInternalServerError)
@@ -67,11 +52,11 @@ func CreateDynamicRoutes(mux *http.ServeMux, templateRoot string, blogRoot strin
 		route := BaseRoute + strings.TrimSuffix(basename, filepath.Ext(basename))
 		log.Printf("Routing %s via %s", m, route)
 
-		data := postRoute{
+		data := util.PostRoute{
 			Title: "<TODO: parse front matter>",
 			Route: route,
 		}
-		allPosts = append(allPosts, data)
+		AllPosts = append(AllPosts, data)
 		mux.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
 			post(w, r, m)
 		})

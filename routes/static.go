@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"io"
+	"html/template"
 	"log"
 	"net/http"
 
@@ -9,46 +9,44 @@ import (
 )
 
 func index(w http.ResponseWriter, r *http.Request) {
-	const indexTemplate = "./templates/index.html.tmpl"
-	util.LogRequest(r)
-
-	err := util.RefuseUnsupportedMethods(w, r)
-	if err == nil {
-		// This route will be hit if no others apply
-		if r.URL.Path != "/" && r.URL.Path != "/index.html" {
-			http.NotFound(w, r)
-		} else {
-			err = util.ProcessTemplate(w, indexTemplate, nil)
-			if err != nil {
-				log.Printf("Error rendering template: %s", err)
-				http.Error(w, "Error rendering template", http.StatusInternalServerError)
-			}
-		}
+	// This route will be hit if no others apply
+	if r.URL.Path != "/" && r.URL.Path != "/index.html" {
+		util.LogRequest(r)
+		http.NotFound(w, r)
+	} else {
+		static(w, r, "static/index.md")
 	}
 }
 
 func legal(w http.ResponseWriter, r *http.Request) {
-	util.LogRequest(r)
-
-	err := util.RefuseUnsupportedMethods(w, r)
-	if err == nil {
-		io.WriteString(w, "Hello, legal!")
-	}
+	static(w, r, "static/legal.md")
 }
 
 func posts(w http.ResponseWriter, r *http.Request) {
+	static(w, r, "static/posts.md")
+}
+
+func static(w http.ResponseWriter, r *http.Request, filepath string) {
 	util.LogRequest(r)
 
 	err := util.RefuseUnsupportedMethods(w, r)
 	if err == nil {
-		const postsTemplate = "./templates/posts.html.tmpl"
+		const staticPageTemplate = "./templates/static.tmpl.html"
 
-		var data struct {
-			Posts []postRoute
+		err, output := util.RenderMarkdown(filepath)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
-		data.Posts = allPosts
 
-		util.ProcessTemplate(w, postsTemplate, data)
+		pageData := util.PageData{
+			Posts:   AllPosts,
+			Version: util.Version,
+			Title:   filepath, // TODO: read front matter!
+			Body:    template.HTML(output),
+		}
+
+		util.ProcessTemplate(w, staticPageTemplate, pageData)
 		if err != nil {
 			log.Printf("Error rendering template: %s", err)
 			http.Error(w, "Error rendering template", http.StatusInternalServerError)
