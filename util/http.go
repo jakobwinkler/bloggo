@@ -11,6 +11,7 @@ import (
 
 	"github.com/adrg/frontmatter"
 	"github.com/gomarkdown/markdown"
+	"github.com/gomarkdown/markdown/parser"
 )
 
 type PostRoute struct {
@@ -100,7 +101,13 @@ func RenderMarkdown(path string) (error, []byte, *FrontMatter) {
 	}
 
 	// Render HTML
-	return nil, markdown.ToHTML(rest, nil, nil), &matter
+	extensions := parser.NoIntraEmphasis | parser.Tables |
+		parser.Strikethrough | parser.SpaceHeadings | parser.Footnotes |
+		parser.HeadingIDs | parser.AutoHeadingIDs | parser.DefinitionLists |
+		parser.Attributes | parser.SuperSubscript | parser.Includes |
+		parser.Mmark
+	parser := parser.NewWithExtensions(extensions)
+	return nil, markdown.ToHTML(rest, parser, nil), &matter
 }
 
 func ParseFrontmatter(path string) (error, *FrontMatter) {
