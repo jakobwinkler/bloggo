@@ -48,7 +48,8 @@ func CreateDynamicRoutes(mux *http.ServeMux, templateRoot string, blogRoot strin
 
 	// Create routes for all posts and store them so we can show a list
 	const BaseRoute = "/posts/"
-	for _, m := range matches {
+	for i, _ := range matches {
+		m := matches[len(matches)-i-1]
 		basename := filepath.Base(m)
 		route := BaseRoute + strings.TrimSuffix(basename, filepath.Ext(basename))
 		log.Printf("Routing %s via %s", m, route)
